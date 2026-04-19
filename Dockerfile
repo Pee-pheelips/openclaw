@@ -49,8 +49,8 @@ COPY scripts/postinstall-bundled-plugins.mjs scripts/preinstall-package-manager-
 
 COPY --from=ext-deps /out/ ./${OPENCLAW_BUNDLED_PLUGIN_DIR}/
 
-RUN --mount=type=cache,id=s/8b8066ec-58b0-4e4e-8ca3-ac30beca29b4-/pnpm/store,target=/root/.local/share/pnpm/store,sharing=locked \
-    NODE_OPTIONS=--max-old-space-size=2048 pnpm install --frozen-lockfile
+# Removed cache mount for Railway compatibility
+RUN NODE_OPTIONS=--max-old-space-size=2048 pnpm install --frozen-lockfile
 
 RUN echo "==> Verifying critical native addons..." && \
     find /app/node_modules -name "matrix-sdk-crypto*.node" 2>/dev/null | grep -q . || \
@@ -114,9 +114,8 @@ LABEL org.opencontainers.image.source="https://github.com/openclaw/openclaw" \
 
 WORKDIR /app
 
-RUN --mount=type=cache,id=s/8b8066ec-58b0-4e4e-8ca3-ac30beca29b4-/apt-cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,id=s/8b8066ec-58b0-4e4e-8ca3-ac30beca29b4-/apt-lists,target=/var/lib/apt,sharing=locked \
-    apt-get update && \
+# Removed cache mounts for Railway compatibility
+RUN apt-get update && \
     if [ "${OPENCLAW_DOCKER_APT_UPGRADE}" != "0" ]; then \
       DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends; \
     fi && \
@@ -149,17 +148,13 @@ RUN install -d -m 0755 "$COREPACK_HOME" && \
     chmod -R a+rX "$COREPACK_HOME"
 
 ARG OPENCLAW_DOCKER_APT_PACKAGES=""
-RUN --mount=type=cache,id=s/8b8066ec-58b0-4e4e-8ca3-ac30beca29b4-/apt-cache2,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,id=s/8b8066ec-58b0-4e4e-8ca3-ac30beca29b4-/apt-lists2,target=/var/lib/apt,sharing=locked \
-    if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
+RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
       apt-get update && \
       DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $OPENCLAW_DOCKER_APT_PACKAGES; \
     fi
 
 ARG OPENCLAW_INSTALL_BROWSER=""
-RUN --mount=type=cache,id=s/8b8066ec-58b0-4e4e-8ca3-ac30beca29b4-/apt-cache3,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,id=s/8b8066ec-58b0-4e4e-8ca3-ac30beca29b4-/apt-lists3,target=/var/lib/apt,sharing=locked \
-    if [ -n "$OPENCLAW_INSTALL_BROWSER" ]; then \
+RUN if [ -n "$OPENCLAW_INSTALL_BROWSER" ]; then \
       apt-get update && \
       DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends xvfb && \
       mkdir -p /home/node/.cache/ms-playwright && \
@@ -170,9 +165,7 @@ RUN --mount=type=cache,id=s/8b8066ec-58b0-4e4e-8ca3-ac30beca29b4-/apt-cache3,tar
 
 ARG OPENCLAW_INSTALL_DOCKER_CLI=""
 ARG OPENCLAW_DOCKER_GPG_FINGERPRINT="9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
-RUN --mount=type=cache,id=s/8b8066ec-58b0-4e4e-8ca3-ac30beca29b4-/apt-cache4,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,id=s/8b8066ec-58b0-4e4e-8ca3-ac30beca29b4-/apt-lists4,target=/var/lib/apt,sharing=locked \
-    if [ -n "$OPENCLAW_INSTALL_DOCKER_CLI" ]; then \
+RUN if [ -n "$OPENCLAW_INSTALL_DOCKER_CLI" ]; then \
       apt-get update && \
       DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ca-certificates curl gnupg && \
